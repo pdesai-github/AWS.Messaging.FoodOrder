@@ -1,0 +1,116 @@
+{
+	"info": {
+		"_postman_id": "delivery-order-collection-001",
+		"name": "FoodOrder.Consumer.Delivery - DeliveryOrderController",
+		"description": "API endpoints for reading and deleting SQS messages in the Delivery consumer service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Messages from SQS Queue",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:7002/api/deliveryorder/messages?maxMessages=10&waitTimeSeconds=5",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7002",
+					"path": [
+						"api",
+						"deliveryorder",
+						"messages"
+					],
+					"query": [
+						{
+							"key": "maxMessages",
+							"value": "10",
+							"description": "Maximum number of messages to retrieve (1-10)"
+						},
+						{
+							"key": "waitTimeSeconds",
+							"value": "5",
+							"description": "Long-polling wait time in seconds (0-20)"
+						}
+					]
+				},
+				"description": "Retrieves pending delivery orders from the SQS queue.\n\nParameters:\n- maxMessages: Maximum number of messages to retrieve (1-10, default: 10)\n- waitTimeSeconds: Long-polling wait time (0-20 seconds, default: 5)\n\nReturns:\n- count: Number of messages received\n- messages: Array of message objects with MessageId, ReceiptHandle, Body, Attributes, and MessageAttributes"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Message from SQS Queue",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"receiptHandle\": \"AQEB...your-receipt-handle-here...\"\n}"
+				},
+				"url": {
+					"raw": "https://localhost:7002/api/deliveryorder/messages",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7002",
+					"path": [
+						"api",
+						"deliveryorder",
+						"messages"
+					]
+				},
+				"description": "Deletes a processed delivery order message from the SQS queue.\n\nRequest Body:\n- receiptHandle: The receipt handle obtained from the GET messages endpoint\n\nReturns:\n- 204 No Content on success\n- 400 Bad Request if receiptHandle is missing\n- 500 Internal Server Error on failure"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Single Message (Short Polling)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:7002/api/deliveryorder/messages?maxMessages=1&waitTimeSeconds=0",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7002",
+					"path": [
+						"api",
+						"deliveryorder",
+						"messages"
+					],
+					"query": [
+						{
+							"key": "maxMessages",
+							"value": "1",
+							"description": "Retrieve only 1 message"
+						},
+						{
+							"key": "waitTimeSeconds",
+							"value": "0",
+							"description": "No wait time (short polling)"
+						}
+					]
+				},
+				"description": "Retrieves a single message with short polling (immediate return if no messages available)"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://localhost:7002",
+			"type": "string"
+		}
+	]
+}

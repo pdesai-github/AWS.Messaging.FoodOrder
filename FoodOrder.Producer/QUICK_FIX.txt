@@ -1,0 +1,75 @@
+# Quick Fix - AWS Credentials Error
+
+## TL;DR - Do This Now
+
+### 1?? Verify Credentials
+```bash
+aws sts get-caller-identity
+```
+? Should show your Account: `509399622377`
+
+### 2?? Verify Topic Exists
+```bash
+aws sns list-topics --region ap-south-1
+```
+? Should show: `arn:aws:sns:ap-south-1:509399622377:FoodOrderCreated.fifo`
+
+### 3?? Test SNS Publish
+```bash
+aws sns publish \
+  --topic-arn arn:aws:sns:ap-south-1:509399622377:FoodOrderCreated.fifo \
+  --message "test" \
+  --region ap-south-1
+```
+? Should return a MessageId
+
+### 4?? Restart App
+```bash
+# Stop current app (Ctrl+C)
+dotnet clean
+dotnet build
+dotnet run
+```
+
+### 5?? Test API
+```bash
+curl -X POST http://localhost:5000/api/foodorder \
+  -H "X-API-Key: dev-api-key-12345" \
+  -H "Content-Type: application/json" \
+  -d '{"customerName":"John","customerEmail":"john@test.com","deliveryAddress":"123 St","items":[{"itemName":"Pizza","quantity":1,"price":15.99}],"totalAmount":15.99}'
+```
+? Should get 201 Created with orderId
+
+---
+
+## What Was Fixed
+? Region changed from `us-east-1` ? `ap-south-1` (matches your SNS topic)  
+? Debug logging enabled for AWS SDK  
+? Both appsettings files updated  
+
+---
+
+## Still Getting Error?
+
+**Check:**
+1. AWS credentials valid? ? Run step 1
+2. Topic exists? ? Run step 2
+3. Can publish? ? Run step 3
+4. App restarted? ? Run step 4
+5. API reachable? ? Run step 5
+
+**If step 1-3 fail**: AWS credentials problem - run `aws configure`
+
+**If all pass but step 5 fails**: Check application logs for errors
+
+---
+
+## Common Fixes
+
+| Symptom | Fix |
+|---------|-----|
+| `aws sts get-caller-identity` fails | Run: `aws configure` |
+| Topic not found | Region must be `ap-south-1` |
+| Access Denied on SNS | Ask AWS admin to add sns:Publish permission |
+| App still shows error | Did you restart the app? Run `dotnet run` again |
+

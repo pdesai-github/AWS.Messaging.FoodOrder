@@ -1,0 +1,332 @@
+{
+  "info": {
+    "_postman_id": "foodorder-producer-api",
+    "name": "FoodOrder Producer API",
+    "description": "Collection for FoodOrder.Producer API - AWS SNS Food Order Publishing",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Food Order",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Set variables for the request",
+              "pm.variables.set('api_key', 'dev-api-key-12345');",
+              "pm.variables.set('api_url', 'http://localhost:5000');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Test the response",
+              "pm.test('Status code is 201 Created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Response has required fields', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('orderId');",
+              "    pm.expect(jsonData).to.have.property('messageId');",
+              "    pm.expect(jsonData).to.have.property('status');",
+              "    pm.expect(jsonData).to.have.property('createdAt');",
+              "});",
+              "",
+              "pm.test('Message status is correct', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.status).to.equal('Order received and published to SNS');",
+              "});",
+              "",
+              "// Save orderId for later use",
+              "pm.test('Save orderId to environment', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.environment.set('last_order_id', jsonData.orderId);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}",
+            "type": "text",
+            "description": "API Key for authentication"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerName\": \"John Doe\",\n  \"customerEmail\": \"john.doe@example.com\",\n  \"deliveryAddress\": \"123 Main Street, New York, NY 10001\",\n  \"items\": [\n    {\n      \"itemName\": \"Margherita Pizza\",\n      \"quantity\": 2,\n      \"price\": 15.99\n    },\n    {\n      \"itemName\": \"Caesar Salad\",\n      \"quantity\": 1,\n      \"price\": 8.99\n    },\n    {\n      \"itemName\": \"Garlic Bread\",\n      \"quantity\": 1,\n      \"price\": 4.99\n    }\n  ],\n  \"totalAmount\": 45.96,\n  \"messageAttributes\": {\n    \"ShopId\": [\"shop-1\"]\n  }\n}"
+        },
+        "url": {
+          "raw": "{{api_url}}/api/foodorder",
+          "protocol": "http",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "api",
+            "foodorder"
+          ]
+        },
+        "description": "Creates a new food delivery order and publishes it to AWS SNS"
+      }
+    },
+    {
+      "name": "Create Order - Minimal",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201 Created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "dev-api-key-12345",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerName\": \"Jane Smith\",\n  \"customerEmail\": \"jane.smith@example.com\",\n  \"deliveryAddress\": \"456 Oak Avenue, Boston, MA 02101\",\n  \"items\": [\n    {\n      \"itemName\": \"Pepperoni Pizza\",\n      \"quantity\": 1,\n      \"price\": 17.99\n    }\n  ],\n  \"totalAmount\": 17.99\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/foodorder",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "foodorder"
+          ]
+        },
+        "description": "Creates a minimal food order (without messageAttributes)"
+      }
+    },
+    {
+      "name": "Create Order - With Multiple Shop IDs",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "dev-api-key-12345",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerName\": \"Alex Johnson\",\n  \"customerEmail\": \"alex.johnson@example.com\",\n  \"deliveryAddress\": \"789 Pine Road, San Francisco, CA 94102\",\n  \"items\": [\n    {\n      \"itemName\": \"Vegetarian Pizza\",\n      \"quantity\": 1,\n      \"price\": 14.99\n    },\n    {\n      \"itemName\": \"Chicken Wings\",\n      \"quantity\": 2,\n      \"price\": 12.99\n    },\n    {\n      \"itemName\": \"Soda 2L\",\n      \"quantity\": 1,\n      \"price\": 3.99\n    }\n  ],\n  \"totalAmount\": 44.96,\n  \"messageAttributes\": {\n    \"ShopId\": [\"shop-1\", \"shop-2\"],\n    \"DeliveryZone\": [\"zone-north\"]\n  }\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/foodorder",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "foodorder"
+          ]
+        },
+        "description": "Creates an order with multiple message attributes"
+      }
+    },
+    {
+      "name": "Create Order - Invalid (Missing Customer Name)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400 Bad Request', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test('Error message is clear', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('error');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "dev-api-key-12345",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerName\": \"\",\n  \"customerEmail\": \"test@example.com\",\n  \"deliveryAddress\": \"123 Main St\",\n  \"items\": [\n    {\n      \"itemName\": \"Pizza\",\n      \"quantity\": 1,\n      \"price\": 15.99\n    }\n  ],\n  \"totalAmount\": 15.99\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/foodorder",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "foodorder"
+          ]
+        },
+        "description": "Test endpoint validation - missing customer name should return 400"
+      }
+    },
+    {
+      "name": "Create Order - Invalid (Missing API Key)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 401 Unauthorized', function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "pm.test('Error indicates missing API key', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.include('API Key');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerName\": \"Test User\",\n  \"customerEmail\": \"test@example.com\",\n  \"deliveryAddress\": \"123 Main St\",\n  \"items\": [\n    {\n      \"itemName\": \"Pizza\",\n      \"quantity\": 1,\n      \"price\": 15.99\n    }\n  ],\n  \"totalAmount\": 15.99\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/foodorder",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "foodorder"
+          ]
+        },
+        "description": "Test authentication - request without API key should return 401"
+      }
+    },
+    {
+      "name": "Create Order - Invalid (Wrong API Key)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 401 Unauthorized', function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "pm.test('Error indicates invalid API key', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.include('Invalid API Key');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "wrong-api-key-xyz",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerName\": \"Test User\",\n  \"customerEmail\": \"test@example.com\",\n  \"deliveryAddress\": \"123 Main St\",\n  \"items\": [\n    {\n      \"itemName\": \"Pizza\",\n      \"quantity\": 1,\n      \"price\": 15.99\n    }\n  ],\n  \"totalAmount\": 15.99\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/foodorder",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "foodorder"
+          ]
+        },
+        "description": "Test authentication - request with wrong API key should return 401"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "api_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "dev-api-key-12345",
+      "type": "string"
+    }
+  ]
+}
