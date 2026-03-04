@@ -12,6 +12,18 @@ namespace FoodOrder.Producer
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            // Add CORS policy
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowLocalhost3000",
+                    policy =>
+                    {
+                        policy.WithOrigins("http://localhost:3000")
+                              .AllowAnyHeader()
+                              .AllowAnyMethod();
+                    });
+            });
+
             // Add AWS services - construct scoped SNS client so credentials are resolved fresh per request
             builder.Services.AddScoped<Amazon.SimpleNotificationService.IAmazonSimpleNotificationService>(sp =>
             {
@@ -37,6 +49,7 @@ namespace FoodOrder.Producer
             }
 
             app.UseHttpsRedirection();
+            app.UseCors("AllowLocalhost3000");
             app.UseAuthorization();
             app.MapControllers();
 
