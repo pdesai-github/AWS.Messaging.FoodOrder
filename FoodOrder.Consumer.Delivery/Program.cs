@@ -15,6 +15,16 @@ namespace FoodOrder.Consumer.Delivery
             builder.Services.AddAWSService<IAmazonSQS>();
             builder.Services.AddScoped<ISqsService, SqsService>();
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    policy.WithOrigins("http://localhost:3000")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -30,6 +40,8 @@ namespace FoodOrder.Consumer.Delivery
             }
 
             app.UseHttpsRedirection();
+
+            app.UseCors();
 
             app.UseAuthorization();
 

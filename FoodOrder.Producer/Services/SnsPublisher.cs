@@ -1,13 +1,13 @@
 using Amazon.SimpleNotificationService;
-using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
+using FoodOrder.Shared;
 using System.Text.Json;
 
 namespace FoodOrder.Producer.Services
 {
     public interface ISnsPublisher
     {
-        Task<string> PublishFoodOrderAsync(object order);
+        Task<string> PublishFoodOrderAsync(FoodOrderMessage order);
     }
 
     public class SnsPublisher : ISnsPublisher
@@ -27,7 +27,7 @@ namespace FoodOrder.Producer.Services
             _logger.LogInformation("SnsPublisher initialized with local AWS profile");
         }
 
-        public async Task<string> PublishFoodOrderAsync(object order)
+        public async Task<string> PublishFoodOrderAsync(FoodOrderMessage order)
         {
             try
             {
@@ -39,33 +39,22 @@ namespace FoodOrder.Producer.Services
                 }
 
                 var messageJson = JsonSerializer.Serialize(order);
+                string shopId = order.MessageAttributes["ShopId"];
 
                 var publishRequest = new PublishRequest
                 {
                     TopicArn = topicArn,
                     Message = messageJson,
-                    Subject = "Food Order Created"
+                    Subject = "Food Order Created",
+                    MessageGroupId = shopId,
+                    MessageAttributes = new Dictionary<string, MessageAttributeValue>()
                 };
 
-                // Add FIFO-required fields and message attributes if order is FoodOrderRequest
-                if (order is FoodOrder.Producer.Models.FoodOrderRequest foodOrder)
+                publishRequest.MessageAttributes["ShopId"] = new MessageAttributeValue
                 {
-                    publishRequest.MessageGroupId = foodOrder.MessageGroupId;
-                    publishRequest.MessageDeduplicationId = foodOrder.OrderId;
-
-                    if (foodOrder.MessageAttributes != null && foodOrder.MessageAttributes.Count > 0)
-                    {
-                        foreach (var attribute in foodOrder.MessageAttributes)
-                        {
-                            var messageAttribute = new MessageAttributeValue
-                            {
-                                DataType = "String",
-                                StringValue = string.Join(",", attribute.Value)
-                            };
-                            publishRequest.MessageAttributes.Add(attribute.Key, messageAttribute);
-                        }
-                    }
-                }
+                    DataType = "String",
+                    StringValue = shopId
+                };
 
                 var response = await _snsClient.PublishAsync(publishRequest);
                 

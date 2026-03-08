@@ -1,40 +1,19 @@
 import axios from "axios"
 import { useState } from "react";
+import { FoodOrderMessage } from "../models/FoodOrderMessage";
 
 export const CreateOrderComponent: React.FC = () => {
 
-    const [order, setOrder] = useState("")
-
-    let orderReq = {
-        orderId: "ORD123",
-        customerName: "Pradip",
-        customerEmail: "pradip@test.com",
-        deliveryAddress: "Pune, India",
-        items: [
-            {
-                itemName: "Laptop",
-                quantity: 1,
-                price: 80000
-            },
-            {
-                itemName: "Mouse",
-                quantity: 2,
-                price: 500
-            }
-        ],
-        totalAmount: 81000,
-        orderDate: new Date().toISOString(),
-        messageAttributes: {
-            additionalProp1: ["value1"],
-            additionalProp2: ["value2"],
-            additionalProp3: ["value3"]
-        },
-        messageGroupId: "order-group"
-    };
-
+    const [messageBody, setMessageBody] = useState("")
+    const [shopGroupId, setShopGroupId] = useState("")
 
     const onSubmitOrder = async () => {
-        orderReq.customerName = order;
+        const orderReq: FoodOrderMessage = {
+            body : messageBody,
+            messageAttributes:{
+                "ShopId": shopGroupId
+            }
+        };
         const res = axios.post("https://localhost:7020/api/foodorder", orderReq, {
             headers: {
                 'X-API-Key': 'dev-api-key-12345'  // Add this line
@@ -44,7 +23,7 @@ export const CreateOrderComponent: React.FC = () => {
     }
 
     const onUpdateOrder = async (order: string) => {
-        setOrder(order)
+        setMessageBody(order)
     }
 
     return (
@@ -55,7 +34,8 @@ export const CreateOrderComponent: React.FC = () => {
             </div>
             <div className="d-flex flex-row">
                 <div>
-                    <input value={order} onChange={(e) => onUpdateOrder(e.target.value)} type="text" />
+                    <input placeholder="Customer Name" value={messageBody} onChange={(e) => setMessageBody(e.target.value)} type="text" className="me-2" />
+                    <input placeholder="Shop Group ID" value={shopGroupId} onChange={(e) => setShopGroupId(e.target.value)} type="text" />
                 </div>
                 <div className="mx-2">
                     <button onClick={onSubmitOrder} className="btn btn-sm btn-primary">Submit Order</button>

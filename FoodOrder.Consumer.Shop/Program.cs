@@ -9,10 +9,23 @@ namespace FoodOrder.Consumer.Shop
 
             // Add services to the container.
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactApp", policy =>
+                {
+                    policy.WithOrigins("http://localhost:3000")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddScoped<Repositories.IShopRepository, Repositories.ShopRepository>();
+            builder.Services.AddScoped<Services.IShopService, Services.ShopService>();
 
             var app = builder.Build();
 
@@ -24,6 +37,8 @@ namespace FoodOrder.Consumer.Shop
             }
 
             app.UseHttpsRedirection();
+
+            app.UseCors("AllowReactApp");
 
             app.UseAuthorization();
 

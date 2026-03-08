@@ -8,8 +8,16 @@
 
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.300.37" />
-    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.300.2" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.2.15" />
+    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.301" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FoodOrder.Shared\FoodOrder.Shared.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using FoodOrder.Producer.Models;
 using FoodOrder.Producer.Services;
 using FoodOrder.Producer.Authentication;
+using FoodOrder.Shared;
 
 namespace FoodOrder.Producer.Controllers
 {
@@ -28,55 +28,19 @@ namespace FoodOrder.Producer.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<OrderResponse>> CreateOrder([FromBody] FoodOrderRequest request)
+        public async Task<ActionResult<FoodOrderMessage>> CreateOrder([FromBody] FoodOrderMessage request)
         {
-            if (request == null)
-            {
-                return BadRequest("Order request cannot be null");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.CustomerName))
-            {
-                return BadRequest("Customer name is required");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.DeliveryAddress))
-            {
-                return BadRequest("Delivery address is required");
-            }
-
-            if (request.Items == null || request.Items.Count == 0)
-            {
-                return BadRequest("Order must contain at least one item");
-            }
-
+          
             try
             {
-                _logger.LogInformation($"Processing order {request.OrderId} for customer {request.CustomerName}");
-
-                // Initialize message attributes if not already set
-                if (request.MessageAttributes == null)
-                {
-                    request.MessageAttributes = new Dictionary<string, List<string>>();
-                }
-
-                // Ensure ShopId is set in message attributes
-                if (!request.MessageAttributes.ContainsKey("ShopId"))
-                {
-                    request.MessageAttributes["ShopId"] = new List<string> { "shop-1" };
-                }
+             
+         
 
                 var messageId = await _snsPublisher.PublishFoodOrderAsync(request);
 
-                var response = new OrderResponse
-                {
-                    OrderId = request.OrderId,
-                    MessageId = messageId,
-                    Status = "Order received and published to SNS",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var response = new FoodOrderMessage { MessageId = messageId };
 
-                return CreatedAtAction(nameof(CreateOrder), new { orderId = request.OrderId }, response);
+                return StatusCode(StatusCodes.Status201Created, response);
             }
             catch (Exception ex)
             {
@@ -87,11 +51,4 @@ namespace FoodOrder.Producer.Controllers
         }
     }
 
-    public class OrderResponse
-    {
-        public string OrderId { get; set; } = string.Empty;
-        public string MessageId { get; set; } = string.Empty;
-        public string Status { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
-    }
 }
